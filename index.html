@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIMANJA — Sistem Pemantauan Penugasan Manajemen Risiko</title>
+<meta name="description" content="Sistem Pemantauan Penugasan Bagian Kepatuhan dan Manajemen Risiko">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.min.css?v=1">
+<script>
+  // Terapkan mode tampilan (terang/gelap) sedini mungkin, sebelum halaman
+  // dirender, supaya tidak ada "kedipan" (flash) tema terang sesaat
+  // sebelum beralih ke tema gelap saat halaman dimuat.
+  (function () {
+    try {
+      var saved = localStorage.getItem("simanja_theme");
+      if (saved === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    } catch (e) {}
+  })();
+</script>
+</head>
+<body>
+
+<!-- ============ LAYAR "MEMUAT SIMANJA..." ============ -->
+<!-- Tampil sejak halaman dibuka, otomatis hilang begitu js/app.js
+     selesai memuat data (lihat fungsi hideAppLoadingOverlay di app.js). -->
+<div class="app-loading-overlay" id="appLoadingOverlay">
+  <div class="app-loading-box">
+    <div class="app-loading-spinner" aria-hidden="true"></div>
+    <div class="app-loading-text">Memuat SIMANJA…</div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="mainSidebar">
+   <div class="sidebar-inner" id="sidebarInner">
+    <div class="sidebar-top-row">
+      <button class="hamburger-btn" id="btnHamburger" type="button" aria-label="Sembunyikan/tampilkan menu" aria-expanded="true" aria-controls="mainSidebar">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <button class="theme-toggle-btn" id="btnOnboardingHelp" type="button" aria-label="Panduan singkat SIMANJA" title="Panduan singkat">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+      </button>
+      <button class="theme-toggle-btn" id="btnThemeToggle" type="button" aria-label="Ganti mode tampilan (terang/gelap)" title="Ganti mode terang/gelap">
+        <svg id="themeIconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.4 4.4l1.7 1.7M17.9 17.9l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.4 19.6l1.7-1.7M17.9 6.1l1.7-1.7"/></svg>
+        <svg id="themeIconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M20.8 14.5A8.5 8.5 0 1 1 9.5 3.2a7 7 0 0 0 11.3 11.3Z"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-brand">
+      <div class="brand-seal"><img src="assets/logo-sigma.png" alt="Logo SIGMA"></div>
+      <div class="brand-text">
+        <div class="brand-title">SIMANJA</div>
+        <div class="brand-sub">Sistem Pemantauan Penugasan Manajemen Risiko</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Pemantauan</div>
+      <button class="nav-item active" data-view="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-view="kalender">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+        Kalender Penugasan
+      </button>
+      <button class="nav-item" data-view="data">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>
+        Data Penugasan
+        <span class="nav-count" id="navCountData">0</span>
+      </button>
+
+      <div class="nav-label">Layanan</div>
+      <button class="nav-item" data-view="integrasi">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 7a5 5 0 0 0-10 0v3a5 5 0 0 0 0 8h1"/><path d="M7 17a5 5 0 0 0 10 0v-3a5 5 0 0 0 0-8h-1"/></svg>
+        Integrasi Data
+      </button>
+      <button class="nav-item" data-view="cuti">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="m8.5 14.5 2 2 4-4"/></svg>
+        Permohonan Cuti
+        <span class="nav-count" id="navCountCuti">0</span>
+      </button>
+
+      <div class="nav-label">Akun</div>
+      <button class="nav-item" data-view="auth" id="navAuth">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
+        Masuk
+      </button>
+      <button class="nav-item" data-view="profil" id="navProfil" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Profil (<span id="navProfilName"></span>)
+      </button>
+      <button class="nav-item" data-view="usermgmt" id="navUserMgmt" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Manajemen Pengguna
+      </button>
+      <button class="nav-item" id="navLogout" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Keluar
+      </button>
+
+      <div class="nav-label">Data</div>
+      <div class="dropdown" style="width:100%;">
+        <button class="nav-item" id="btnExportToggle" type="button" style="width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Ekspor Data
+        </button>
+        <div class="dropdown-menu" id="exportMenu">
+          <div class="menu-caption">Pilih format</div>
+          <button type="button" id="btnExportExcel">📊 Microsoft Excel (.xlsx)</button>
+          <button type="button" id="btnExportCSV">📄 CSV (untuk Google Sheets)</button>
+          <button type="button" id="btnExportJSON">🗂️ JSON (cadangan lengkap)</button>
+        </div>
+      </div>
+
+      <button class="nav-item" type="button" id="btnImportFileTrigger" style="margin:0;width:100%;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 0 4 4m-4-4L8 7"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Impor File (Excel/CSV/JSON)
+      </button>
+      <input type="file" id="fileImport" accept=".xlsx,.xls,.csv,.json,application/json" hidden>
+
+      <div style="padding:6px 12px 2px;font-size:11px;color:var(--ink-500);">Mode impor:</div>
+      <div style="display:flex;gap:12px;padding:0 12px 6px;font-size:11.5px;color:var(--ink-700);">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="radio" name="importMode" value="replace" checked> Ganti semua
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="radio" name="importMode" value="append"> Tambahkan
+        </label>
+      </div>
+
+      <button class="nav-item" id="btnReset" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        Reset Semua Data
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <strong>Data lokal di perangkat ini.</strong><br>
+      Tersimpan otomatis di browser. Hubungkan Google Sheets di menu <em>Integrasi Data</em> agar semua pegawai bisa berbagi data yang sama.
+      <br><br>
+      <span style="color:var(--amber-600);">⚠️ "Reset Semua Data" akan mengosongkan seluruh data penugasan (0 data) dan tidak bisa dibatalkan.</span>
+    </div>
+   </div>
+  </aside>
+
+  <!-- Backdrop gelap di belakang drawer menu saat dibuka di perangkat mobile/tablet -->
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="pageTitle">Dashboard Pemantauan</h1>
+        <p id="pageSubtitle">Ringkasan progres, capaian, dan status persetujuan penugasan</p>
+      </div>
+      <div class="topbar-actions">
+        <span class="integration-status sync-badge" id="liveSyncBadge" style="display:none;" title="Sinkronisasi real-time lintas perangkat"><span class="status-dot"></span> Live</span>
+        <span class="integration-status sync-badge" id="syncBadge" style="display:none;"><span class="status-dot"></span> Tersinkron</span>
+        <div class="topbar-actions-row">
+          <select class="filter-select" id="filterPicGlobal" title="Tampilkan data berdasarkan PIC">
+            <option value="">Semua PIC</option>
+          </select>
+          <button class="btn btn-gold" id="btnAddTop" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+            <span class="btn-label">Tambah Penugasan</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== VIEW: DASHBOARD ===== -->
+      <section class="view active" id="view-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card" style="--accent:#167e71;" tabindex="0" role="button" aria-label="Lihat detail Total Penugasan" onclick="filterDashboardStat('all')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('all')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg></div>
+            <div class="stat-label">Total Penugasan</div>
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-sub">Seluruh periode berjalan</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+          <div class="stat-card" style="--accent:#23975f;" tabindex="0" role="button" aria-label="Lihat detail Selesai" onclick="filterDashboardStat('selesai')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('selesai')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <div class="stat-label">Selesai</div>
+            <div class="stat-value" id="statSelesai">0</div>
+            <div class="stat-sub">Laporan telah dituntaskan</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+          <div class="stat-card" style="--accent:#e8a13d;" tabindex="0" role="button" aria-label="Lihat detail Dalam Progres" onclick="filterDashboardStat('progres')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('progres')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+            <div class="stat-label">Dalam Progres</div>
+            <div class="stat-value" id="statProgres">0</div>
+            <div class="stat-sub">Masih berjalan / dalam tenggat</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+          <div class="stat-card" style="--accent:#d94d68;" tabindex="0" role="button" aria-label="Lihat detail Terlambat" onclick="filterDashboardStat('terlambat')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('terlambat')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
+            <div class="stat-label">Terlambat</div>
+            <div class="stat-value" id="statTerlambat">0</div>
+            <div class="stat-sub">Melewati due date laporan</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card" style="--accent:#23975f;" tabindex="0" role="button" aria-label="Lihat detail Disetujui" onclick="filterDashboardStat('disetujui')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('disetujui')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+            <div class="stat-label">Disetujui</div>
+            <div class="stat-value" id="statDisetujui">0</div>
+            <div class="stat-sub">Telah melalui persetujuan</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+          <div class="stat-card" style="--accent:#8b7ff0;" tabindex="0" role="button" aria-label="Lihat detail Menunggu Persetujuan" onclick="filterDashboardStat('menunggu')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('menunggu')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+            <div class="stat-label">Menunggu Persetujuan</div>
+            <div class="stat-value" id="statMenunggu">0</div>
+            <div class="stat-sub">Perlu tindak lanjut pimpinan</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+          <div class="stat-card" style="--accent:#d94d68;" tabindex="0" role="button" aria-label="Lihat detail Ditolak" onclick="filterDashboardStat('ditolak')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('ditolak')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></div>
+            <div class="stat-label">Ditolak</div>
+            <div class="stat-value" id="statDitolak">0</div>
+            <div class="stat-sub">Perlu revisi / tindak lanjut</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+          <div class="stat-card" style="--accent:#ef5faa;" tabindex="0" role="button" aria-label="Lihat detail Rata-rata Progres" onclick="filterDashboardStat('all')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();filterDashboardStat('all')}">
+            <div class="stat-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l3-4 4 3 5-7"/></svg></div>
+            <div class="stat-label">Rata-rata Progres</div>
+            <div class="stat-value" id="statAvgProgress">0%</div>
+            <div class="stat-sub">Seluruh penugasan berjalan</div>
+            <span class="stat-detail-btn" aria-hidden="true">Lihat Detail
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Penugasan per Kategori</h3>
+              <span>Distribusi seluruh data</span>
+            </div>
+            <div id="kategoriBars"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Capaian Keseluruhan</h3>
+              <span>% penugasan selesai</span>
+            </div>
+            <div class="seal-wrap">
+              <div id="sealRingWrap"></div>
+              <div class="seal-legend">
+                <div class="legend-row"><span class="legend-dot" style="background:#e8a13d;"></span><span>Selesai</span></div>
+                <div class="legend-row"><span class="legend-dot" style="background:#dbeeec;"></span><span>Belum Selesai</span></div>
+                <p class="helper-text" style="margin-top:6px;">Persentase dihitung dari status efektif tiap penugasan, termasuk yang otomatis ditandai terlambat.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid" style="grid-template-columns:1fr;">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Beban Penugasan per PIC</h3>
+              <span>Top 8 — jumlah keterlibatan</span>
+            </div>
+            <div id="picList" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: KALENDER PENUGASAN ===== -->
+      <section class="view" id="view-kalender">
+        <div class="panel-grid" style="grid-template-columns:1fr;">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Kalender Penugasan</h3>
+              <span>Jadwal harian — mulai &amp; due date tiap penugasan</span>
+            </div>
+
+            <div class="calendar-nav">
+              <div class="calendar-nav-btns">
+                <button class="cal-nav-btn" type="button" onclick="shiftCalendarMonth(-1)" aria-label="Bulan sebelumnya">‹</button>
+                <button class="cal-nav-btn cal-nav-today" type="button" onclick="goToCurrentMonth()">Hari Ini</button>
+                <button class="cal-nav-btn" type="button" onclick="shiftCalendarMonth(1)" aria-label="Bulan berikutnya">›</button>
+              </div>
+              <div class="cal-label" id="calendarLabel">—</div>
+              <div class="cal-legend">
+                <span><i style="background:var(--gold-500);"></i>Mulai</span>
+                <span><i style="background:var(--red-600);"></i>Due Date</span>
+                <span><i style="background:var(--navy-700);"></i>Berlangsung</span>
+              </div>
+            </div>
+
+            <div class="cal-filters">
+              <select class="filter-select" id="calFilterKategori"></select>
+              <select class="filter-select" id="calFilterStatus"></select>
+              <div class="search-box" style="flex:1;min-width:200px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" id="calSearchInput" placeholder="Cari penugasan pada bulan ini…">
+              </div>
+            </div>
+
+            <div class="cal-weekdays">
+              <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+            </div>
+            <div class="cal-grid" id="calendarGrid"></div>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel" style="grid-column: 1 / -1;">
+            <div class="panel-head">
+              <h3>Sebaran Penugasan per Bulan</h3>
+              <span>Berdasarkan periode</span>
+            </div>
+            <div id="periodeChart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: DATA PENUGASAN ===== -->
+      <section class="view" id="view-data">
+        <!-- Tombol ini hanya muncul kalau pengguna masuk ke sini lewat
+             tombol "Lihat Detail" di kartu Dashboard — supaya ada jalan
+             cepat kembali tanpa harus klik menu sidebar. -->
+        <div class="back-to-dashboard-bar" id="backToDashboardBar" style="display:none;">
+          <button type="button" class="back-btn" id="btnBackToDashboard" onclick="backToDashboardFromStat()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Kembali ke Dashboard
+          </button>
+        </div>
+        <div class="table-toolbar">
+          <div class="search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="searchInput" placeholder="Cari nama penugasan, nomor ST, atau PIC…">
+          </div>
+          <select class="filter-select" id="filterKategori"></select>
+          <select class="filter-select" id="filterPeriode"></select>
+          <select class="filter-select" id="filterStatus">
+            <option value="">Semua Status</option>
+            <option value="Progres">Progres</option>
+            <option value="Selesai">Selesai</option>
+            <option value="Terlambat">Terlambat</option>
+          </select>
+          <select class="filter-select" id="filterApproval">
+            <option value="">Semua Persetujuan</option>
+            <option value="Menunggu">Menunggu</option>
+            <option value="Disetujui">Disetujui</option>
+            <option value="Ditolak">Ditolak</option>
+          </select>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+          <!-- Chip filter aktif: menampilkan filter/pencarian yang sedang
+               diterapkan, masing-masing bisa dihapus satu-satu lewat
+               tombol × supaya pengguna tidak bingung kenapa datanya
+               cuma sebagian. Diisi oleh renderFilterChips() di app.js. -->
+          <div class="active-filter-chips" id="activeFilterChips"></div>
+          <div style="padding:12px 16px 0; font-size:12.5px; color:var(--ink-500);" id="resultCount"></div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Penugasan</th>
+                  <th>Kategori</th>
+                  <th>Periode</th>
+                  <th>PIC</th>
+                  <th>Progres</th>
+                  <th>Status</th>
+                  <th>Persetujuan</th>
+                  <th style="width:110px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <div id="pageInfo"></div>
+            <div class="pager" id="pager"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: INTEGRASI ===== -->
+      <section class="view" id="view-integrasi">
+        <div id="integrationBody"></div>
+      </section>
+
+      <!-- ===== VIEW: PERMOHONAN CUTI ===== -->
+      <section class="view" id="view-cuti">
+        <div class="table-toolbar">
+          <div class="search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="cutiSearchInput" placeholder="Cari nama pegawai, NIP, atau alasan cuti…">
+          </div>
+          <select class="filter-select" id="cutiFilterJenis"></select>
+          <select class="filter-select" id="cutiFilterStatus">
+            <option value="">Semua Status</option>
+            <option value="Menunggu">Menunggu</option>
+            <option value="Disetujui">Disetujui</option>
+            <option value="Perubahan">Perubahan</option>
+            <option value="Ditangguhkan">Ditangguhkan</option>
+            <option value="Ditolak">Ditolak / Tidak Disetujui</option>
+          </select>
+        </div>
+
+        <div class="table-toolbar" style="justify-content:space-between;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div class="dropdown">
+              <button class="btn btn-ghost" id="btnCutiExportToggle" type="button">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                Ekspor Data Cuti
+              </button>
+              <div class="dropdown-menu" id="cutiExportMenu">
+                <div class="menu-caption">Pilih format</div>
+                <button type="button" id="btnCutiExportExcel">📊 Microsoft Excel (.xlsx)</button>
+                <button type="button" id="btnCutiExportCSV">📄 CSV (untuk Google Sheets)</button>
+                <button type="button" id="btnCutiExportJSON">🗂️ JSON (cadangan lengkap)</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost" id="btnCutiImportTrigger" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 0 4 4m-4-4L8 7"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              Impor Data Cuti
+            </button>
+            <input type="file" id="fileImportCuti" accept=".xlsx,.xls,.csv,.json,application/json" hidden>
+            <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-500);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+                <input type="radio" name="cutiImportMode" value="replace" checked> Ganti semua
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+                <input type="radio" name="cutiImportMode" value="append"> Tambahkan
+              </label>
+            </div>
+          </div>
+          <button class="btn btn-gold" id="btnCutiAddTop" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+            Ajukan Cuti
+          </button>
+        </div>
+        <p class="helper-text" id="cutiLoginHint" style="display:none;margin:-6px 0 14px;">
+          Anda sedang melihat sebagai tamu (belum masuk) — data permohonan cuti hanya bisa dilihat. Silakan
+          <button class="link-btn" onclick="setView('auth')">masuk</button> untuk mengajukan cuti baru, mengubah, menghapus, atau memberi pertimbangan/keputusan.
+        </p>
+
+        <div class="table-wrap" id="cutiTableWrap">
+          <div style="padding:12px 16px 0; font-size:12.5px; color:var(--ink-500);" id="cutiResultCount"></div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama Pegawai</th>
+                  <th>NIP</th>
+                  <th>Jenis Cuti</th>
+                  <th>Lamanya</th>
+                  <th>Tanggal</th>
+                  <th>Status</th>
+                  <th style="width:110px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="cutiTableBody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <div id="cutiPageInfo"></div>
+            <div class="pager" id="cutiPager"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: AUTH (Masuk) ===== -->
+      <section class="view" id="view-auth">
+        <div class="auth-wrap">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h2>Masuk ke SIMANJA</h2>
+              <p>Gunakan akun yang sudah didaftarkan oleh Super Admin.</p>
+            </div>
+
+            <div class="auth-panel active" id="authPanel-login">
+              <form id="loginForm">
+                <div class="field full">
+                  <label>Email atau Nama Lengkap</label>
+                  <input id="loginUsername" type="text" placeholder="nama@instansi.go.id" required autocomplete="username">
+                </div>
+                <div class="field full">
+                  <label>Password</label>
+                  <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <label class="remember-me-row">
+                  <input type="checkbox" id="rememberMeCheckbox">
+                  <span>Ingat saya di perangkat ini</span>
+                </label>
+                <button type="submit" class="btn btn-primary" id="btnDoLogin" style="width:100%;justify-content:center;">Masuk</button>
+              </form>
+            </div>
+
+            <p class="helper-text" style="text-align:center;margin-top:18px;">
+              Belum punya akun? Hubungi <strong>Super Admin</strong> unit kerja Anda untuk didaftarkan.
+              <br>Password tidak pernah disimpan dalam bentuk asli di sistem.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: PROFIL ===== -->
+      <section class="view" id="view-profil">
+        <div id="profilBody"></div>
+      </section>
+
+      <!-- ===== VIEW: MANAJEMEN PENGGUNA (Super Admin) ===== -->
+      <section class="view" id="view-usermgmt">
+        <div class="table-toolbar" style="justify-content:space-between;">
+          <div style="font-size:12.5px;color:var(--ink-500);" id="userMgmtCount"></div>
+          <button class="btn btn-gold" id="btnAddUserMgmt" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+            Tambah Pengguna
+          </button>
+        </div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama &amp; Email</th>
+                  <th>NIP</th>
+                  <th>No HP</th>
+                  <th>Role</th>
+                  <th>Terdaftar</th>
+                  <th style="width:110px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="userMgmtBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ FORM DRAWER (Create/Update) ============ -->
+<div class="overlay" id="formOverlay">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div>
+        <h2 id="drawerTitle">Tambah Penugasan</h2>
+        <p id="drawerSub">Lengkapi form di bawah ini</p>
+      </div>
+      <button class="drawer-close" id="btnCloseDrawer" type="button" aria-label="Tutup">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="drawerForm">
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-ghost" id="btnCancelForm">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Penugasan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ DETAIL OVERLAY (Detail + Approval) ============ -->
+<div class="overlay" id="detailOverlay">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div><h2>Detail Penugasan</h2><p>Informasi lengkap &amp; persetujuan</p></div>
+      <button class="drawer-close" id="btnCloseDetail" type="button" aria-label="Tutup">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM DELETE ============ -->
+<div class="overlay center" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Hapus data ini?</h3>
+    <p id="confirmText"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="btnCancelConfirm" type="button">Batal</button>
+      <button class="btn" id="btnConfirmDelete" type="button" style="background:var(--red-600);color:#fff;">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CUTI: FORM DRAWER (Ajukan/Ubah) ============ -->
+<div class="overlay" id="cutiFormOverlay">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div>
+        <h2 id="cutiDrawerTitle">Ajukan Cuti</h2>
+        <p id="cutiDrawerSub">Lengkapi Formulir Permintaan dan Pemberian Cuti</p>
+      </div>
+      <button class="drawer-close" id="btnCloseCutiDrawer" type="button" aria-label="Tutup">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="cutiDrawerForm">
+      <div class="drawer-body" id="cutiDrawerBody"></div>
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-ghost" id="btnCancelCutiForm">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Permohonan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CUTI: DETAIL + PERTIMBANGAN/KEPUTUSAN ============ -->
+<div class="overlay" id="cutiDetailOverlay">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div><h2>Detail Permohonan Cuti</h2><p>Formulir Permintaan dan Pemberian Cuti</p></div>
+      <button class="drawer-close" id="btnCloseCutiDetail" type="button" aria-label="Tutup">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="cutiDetailBody"></div>
+  </div>
+</div>
+
+<!-- ============ CUTI: CONFIRM DELETE ============ -->
+<div class="overlay center" id="cutiConfirmOverlay">
+  <div class="confirm-box">
+    <h3>Hapus permohonan cuti ini?</h3>
+    <p id="cutiConfirmText"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="btnCancelCutiConfirm" type="button">Batal</button>
+      <button class="btn" id="btnConfirmCutiDelete" type="button" style="background:var(--red-600);color:#fff;">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM RESET (dengan verifikasi password) ============ -->
+<div class="overlay center" id="resetConfirmOverlay">
+  <div class="confirm-box">
+    <h3>Reset semua data penugasan?</h3>
+    <p>Tindakan ini akan <strong>menghapus seluruh data penugasan</strong> (kembali ke 0 data) secara permanen dan tidak bisa dibatalkan. Untuk melanjutkan, masukkan password akun Anda sebagai konfirmasi.</p>
+    <form id="resetPasswordForm">
+      <div class="field full" style="margin-top:10px;">
+        <label>Password Anda</label>
+        <input id="resetPasswordInput" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-ghost" id="btnCancelReset">Batal</button>
+        <button type="submit" class="btn" id="btnConfirmReset" style="background:var(--red-600);color:#fff;">Ya, Reset Semua Data</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ AKUN SUPER ADMIN BARU DIBUAT (password sekali tampil) ============ -->
+<div class="overlay center" id="superadminPwOverlay">
+  <div class="confirm-box" style="width:min(460px,92vw);">
+    <h3>Akun Super Admin dibuat</h3>
+    <p>Ini pertama kalinya aplikasi dijalankan, jadi akun <strong>Super Admin</strong> (<code id="sapUsernameShown">adminkmr</code>) baru saja dibuat dengan password acak di bawah ini. <strong>Simpan password ini sekarang</strong> — halaman ini hanya tampil satu kali dan password tidak akan pernah ditampilkan lagi.</p>
+    <div class="field full" style="margin-top:10px;">
+      <label>Password Super Admin</label>
+      <input id="sapGeneratedPw" type="text" readonly style="font-family:monospace;font-weight:700;letter-spacing:.02em;">
+    </div>
+    <p class="helper-text" style="margin-top:8px;">Setelah masuk, Anda akan diminta langsung mengganti password ini dengan password pilihan Anda sendiri.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" type="button" id="btnCopySuperadminPw">Salin Password</button>
+      <button class="btn btn-primary" type="button" id="btnAckSuperadminPw">Saya sudah menyimpan password ini</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WAJIB GANTI PASSWORD (setelah login pertama dengan password sementara) ============ -->
+<div class="overlay center" id="forceChangePwOverlay">
+  <div class="confirm-box" style="width:min(440px,92vw);">
+    <h3>Ganti password Anda</h3>
+    <p>Untuk keamanan, silakan buat password baru pilihan Anda sendiri sebelum melanjutkan.</p>
+    <form id="forceChangePwForm">
+      <div class="field full" style="margin-top:10px;">
+        <label>Password Baru</label>
+        <input id="fcpNewPw" type="password" placeholder="Min. 8 karakter, huruf+angka+simbol" autocomplete="new-password" required>
+      </div>
+      <div class="field full">
+        <label>Konfirmasi Password Baru</label>
+        <input id="fcpNewPw2" type="password" placeholder="Ulangi password baru" autocomplete="new-password" required>
+      </div>
+      <div class="confirm-actions">
+        <button type="submit" class="btn btn-primary" id="btnSubmitForceChangePw" style="width:100%;justify-content:center;">Simpan &amp; Lanjutkan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CALENDAR: DETAIL HARI ============ -->
+<div class="overlay center" id="dayOverlay">
+  <div class="confirm-box" style="width:min(440px,92vw);">
+    <h3 id="dayOverlayTitle">Jadwal</h3>
+    <div id="dayOverlayList" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;margin-top:4px;"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="btnCloseDayOverlay" type="button">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ USER MGMT: FORM TAMBAH/UBAH ============ -->
+<div class="overlay" id="userMgmtFormOverlay">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div>
+        <h2 id="userMgmtDrawerTitle">Tambah Akun Pengguna</h2>
+        <p>Khusus Super Admin</p>
+      </div>
+      <button class="drawer-close" id="btnCloseUserMgmtDrawer" type="button" aria-label="Tutup">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="userMgmtDrawerForm">
+      <div class="drawer-body" id="userMgmtDrawerBody"></div>
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-ghost" id="btnCancelUserMgmtForm">Batal</button>
+        <button type="submit" class="btn btn-primary" id="btnSaveUserMgmt">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ USER MGMT: RESET PASSWORD ============ -->
+<div class="overlay center" id="userMgmtResetPwOverlay">
+  <div class="confirm-box">
+    <h3>Reset Password Pengguna</h3>
+    <p>Admin dapat langsung menetapkan password baru tanpa perlu password lama.</p>
+    <div class="field full" style="margin-top:10px;">
+      <label>Password Baru</label>
+      <input id="umNewPw" type="password" placeholder="Min. 8 karakter, huruf+angka+simbol">
+    </div>
+    <div class="field full">
+      <label>Konfirmasi Password Baru</label>
+      <input id="umNewPw2" type="password" placeholder="Ulangi password baru">
+    </div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="btnCancelUserMgmtResetPw" type="button">Batal</button>
+      <button class="btn btn-primary" id="btnConfirmUserMgmtResetPw" type="button">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ USER MGMT: KONFIRMASI HAPUS ============ -->
+<div class="overlay center" id="userMgmtDeleteOverlay">
+  <div class="confirm-box">
+    <h3>Hapus akun pengguna ini?</h3>
+    <p id="userMgmtDeleteText"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="btnCancelUserMgmtDelete" type="button">Batal</button>
+      <button class="btn" id="btnConfirmUserMgmtDelete" type="button" style="background:var(--red-600);color:#fff;">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ONBOARDING: PANDUAN SINGKAT PENGGUNA BARU ============ -->
+<div class="overlay center" id="onboardingOverlay">
+  <div class="confirm-box onboarding-box">
+    <button class="drawer-close" id="btnCloseOnboarding" type="button" aria-label="Tutup panduan" style="position:absolute; top:14px; right:14px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="onboarding-logo"><img src="assets/logo-sigma.png" alt="Logo SIGMA"></div>
+    <h3>Selamat datang di SIMANJA 👋</h3>
+    <p>Panduan singkat sebelum mulai — cuma 4 hal penting:</p>
+    <ul class="onboarding-list">
+      <li><strong>Dashboard</strong> menampilkan ringkasan seluruh penugasan. Klik "Lihat Detail" di tiap kartu untuk langsung ke data yang relevan.</li>
+      <li><strong>Kalender Penugasan</strong> menampilkan jadwal per bulan — klik tanggal mana pun untuk lihat daftar penugasan hari itu.</li>
+      <li><strong>Data Penugasan</strong> tempat menambah, mengubah, mencari, dan memfilter data. Login diperlukan untuk mengubah data.</li>
+      <li>Tombol <strong>hamburger ☰</strong> di pojok kiri atas menyembunyikan/menampilkan menu, dan ikon <strong>?</strong> di sini bisa dibuka lagi kapan saja untuk melihat panduan ini.</li>
+    </ul>
+    <div class="confirm-actions">
+      <button class="btn btn-primary" id="btnStartOnboarding" type="button" style="width:100%;">Mulai Gunakan SIMANJA</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<!-- File impor khusus dari halaman Integrasi Data -->
+<input type="file" id="fileImportIntegrasi" accept=".xlsx,.xls,.csv,.json,application/json" hidden>
+<input type="file" id="fileImportUsers" accept=".xlsx,.xls,.csv,.json,application/json" hidden>
+
+<!-- SheetJS (xlsx) & JSZip TIDAK lagi dimuat di sini secara otomatis —
+     keduanya berat (~1MB gabungan) dan tidak semua pengguna memakainya.
+     Sekarang dimuat sesuai kebutuhan lewat js/lazy-libs.js (lihat
+     ensureXlsxLoaded()/ensureJszipLoaded() yang dipanggil dari
+     app.js/auth.js/cuti.js/cuti-docx-export.js). -->
+<!-- Google Identity Services: OAuth untuk akses Google Sheets langsung dari browser -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Supabase JS: dipakai untuk sinkronisasi data real-time lintas perangkat (lihat js/realtime-sync.js) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script src="js/lazy-libs.min.js?v=1"></script>
+<script src="js/seed-data.min.js?v=1"></script>
+<script src="js/realtime-sync.min.js?v=1"></script>
+<script src="js/auth.min.js?v=1"></script>
+<script src="js/auth-supabase.min.js?v=1"></script>
+<script src="js/app.min.js?v=2"></script>
+<script src="js/cuti.min.js?v=1"></script>
+<script src="js/cuti-docx-export.min.js?v=1"></script>
+</body>
+</html>

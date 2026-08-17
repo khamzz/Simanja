@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Halaman Tidak Ditemukan — SIMANJA</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.min.css?v=1">
+<script>
+  // Ikuti preferensi tema gelap/terang yang sama seperti aplikasi utama.
+  (function () {
+    try {
+      if (localStorage.getItem("simanja_theme") === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 24px; }
+  .nf-wrap { max-width: 420px; }
+  .nf-code { font-family: var(--font-display); font-size: 76px; font-weight: 800; color: var(--navy-700); line-height: 1; margin: 0 0 8px; }
+  .nf-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink-900); margin: 0 0 10px; }
+  .nf-text { color: var(--ink-700); font-size: 14.5px; line-height: 1.6; margin: 0 0 24px; }
+  .nf-logo { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; margin: 0 auto 18px; box-shadow: var(--shadow-card-sm); }
+  .nf-logo img { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transform: scale(1.35); display: block; }
+</style>
+</head>
+<body>
+  <div class="nf-wrap">
+    <div class="nf-logo"><img src="assets/logo-sigma.png" alt="Logo SIGMA"></div>
+    <p class="nf-code">404</p>
+    <h1 class="nf-title">Halaman tidak ditemukan</h1>
+    <p class="nf-text">Alamat yang Anda tuju tidak ada, sudah dipindahkan, atau salah ketik. Silakan kembali ke halaman utama SIMANJA.</p>
+    <a class="btn btn-primary" href="index.html" style="display:inline-flex;">Kembali ke Dashboard</a>
+  </div>
+</body>
+</html>

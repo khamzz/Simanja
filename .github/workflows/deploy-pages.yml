@@ -1,0 +1,54 @@
+name: Deploy ke GitHub Pages
+
+# Berjalan otomatis setiap kali ada push ke branch main.
+# Anda TIDAK PERLU lagi mengubah angka ?v=1, ?v=2, dst secara manual —
+# workflow ini otomatis mengganti angka versi di index.html dengan kode
+# unik dari commit yang baru saja di-push, setiap kali Anda publish.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Mencegah dua proses deploy berjalan bertabrakan di waktu yang sama.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Ganti otomatis ?v=... di index.html dengan kode commit terbaru
+        run: |
+          VERSION="${GITHUB_SHA::8}"
+          echo "Memakai versi cache baru: $VERSION"
+          sed -i -E "s/(\.(js|css))\?v=[a-zA-Z0-9]+/\1?v=$VERSION/g" index.html
+          echo "--- Hasil index.html setelah diproses ---"
+          grep -E '\.(js|css)\?v=' index.html
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload hasil sebagai artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy ke GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
